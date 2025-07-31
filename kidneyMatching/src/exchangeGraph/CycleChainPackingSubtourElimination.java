@@ -218,7 +218,7 @@ public class CycleChainPackingSubtourElimination<V, E> extends
         violatedConstraints = userCutGen.fullUserCut();
       }
       for (IloRange constraint : violatedConstraints) {
-        this.add(constraint);
+        this.add(constraint,  IloCplex.CutManagement.UseCutFilter);
       }
     }
   }

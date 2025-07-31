@@ -354,7 +354,7 @@ public class MinWaitingTimeKepSolver<V, E> {
                       .get(edge) : 0));
         }
       }
-      Function<E, Integer> newObj = new Function<E, Integer>() {
+      com.google.common.base.Function<E, Integer> newObj = new com.google.common.base.Function<E, Integer>() {
         public Integer apply(E edge) {
           if (totalEdgeWeights.containsKey(edge)) {
             return 1 + DoubleMath.roundToInt(100 * totalEdgeWeights.get(edge),
@@ -478,7 +478,7 @@ public class MinWaitingTimeKepSolver<V, E> {
       }
       if (!violatedConstraints.isEmpty()) {
         for (IloRange constraint : violatedConstraints) {
-          this.add(constraint);
+          this.add(constraint, IloCplex.CutManagement.UseCutFilter);
         }
       } else if (addConsistencyConstraintsLazily) {
         ImmutableTable<V, V, Double> precVarVals = getPrecedenceVariableValues(this);
@@ -486,7 +486,7 @@ public class MinWaitingTimeKepSolver<V, E> {
             .checkFractionalSolution(kepPolytope.getEdgeVariables()
                 .getNonZeroVariableValues(this), precVarVals)) {
           this.add(createPrecedenceConsistencyConstraint(constraint.get(0),
-              constraint.get(1), constraint.get(2)));
+              constraint.get(1), constraint.get(2)),  IloCplex.CutManagement.UseCutFilter);
         }
         long totalFractionalCuts = precedenceConsistencyConstraintGenerator
             .getFractionalCutsAdded();
