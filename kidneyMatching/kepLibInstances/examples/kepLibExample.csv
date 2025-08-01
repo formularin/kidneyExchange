@@ -1,6 +1,6 @@
 #a comment, these can be anywhere, but # must be the first character of the line
 problemData
-maxChainLength,Infinity
+maxChainLength,0
 maxCycleLength,3
 cycleBonus,.0
 endProblemData
