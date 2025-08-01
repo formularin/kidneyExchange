@@ -1,6 +1,7 @@
 package main;
 
 import ilog.concert.IloException;
+import ilog.cplex.IloCplex;
 
 import java.util.EnumMap;
 import java.util.EnumSet;
@@ -30,6 +31,7 @@ import graphUtil.Node;
 
 public class CommandLineInterface {
 
+  public static final long defaultSeed = 123;
   public static final String deterministicMode = "deterministicMode";
   public static final String twoStageMode = "twoStageMode";
   public static final String minWaitingMode = "minWaitingMode";
@@ -116,11 +118,13 @@ public class CommandLineInterface {
           }
           CycleChainPackingSubtourElimination<Node, Edge> solver = new CycleChainPackingSubtourElimination<Node, Edge>(
               kep, true, maxSolveTimeMs, threadPool, solverOptions);
+          int seed = (int) extractOrDefault(options, CLIOption.seed, defaultSeed);
+          solver.getCplex().setParam(IloCplex.Param.RandomSeed, seed);
           solver.solve();
           CycleChainDecomposition<Node, Edge> solution = solver.getSolution();
           solver.cleanUp();
           KepTextReaderWriter.INSTANCE.writeSolution(kep, solution,
-              KepParseData.toStringFunction, optPackingOutFile);
+              KepParseData.toStringFunction, optPackingOutFile, seed);
         } catch (IloException e) {
           throw new RuntimeException(e);
         }
@@ -269,7 +273,7 @@ public class CommandLineInterface {
   }
 
   public static enum CLIOption {
-    mode, kepIn, edgeFailureIn, edgeFailureScenariosIn, optPackingOut, phaseOneOut, edgeRealizationIn, edgeRealizationOut, arrivalTimesIn, matchingTimesOut, numThreads, maxTimeSeconds, numScenarios, formulation, fullUserCut;
+    seed, mode, kepIn, edgeFailureIn, edgeFailureScenariosIn, optPackingOut, phaseOneOut, edgeRealizationIn, edgeRealizationOut, arrivalTimesIn, matchingTimesOut, numThreads, maxTimeSeconds, numScenarios, formulation, fullUserCut;
   }
 
   private static CLIOption parseOption(String optionText) {

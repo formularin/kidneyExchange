@@ -48,6 +48,8 @@ public class KepTextReaderWriter extends KepIOBase {
   private static String startComment = "#";
   private static String delimeter = ",";
 
+  private static String randomSeed = "randomSeed";
+
   private static String problemData = "problemData";
   private static String endProblemData = "endProblemData";
   private static String maxChainLength = "maxChainLength";
@@ -280,26 +282,46 @@ public class KepTextReaderWriter extends KepIOBase {
     return ans;
   }
 
+  private <V, E> void writeChainsAndCycles(
+      CycleChainDecomposition<V, E> solution,
+      Function<? super E, String> edgeNames, BufferedWriter writer
+      ) throws IOException {
+    for (EdgeChain<E> chain : solution.getEdgeChains()) {
+      writeLine(writer, chainOut, Integer.toString(chain.size()));
+      for (E edge : chain.getEdgesInOrder()) {
+        writeLine(writer, edgeNames.apply(edge));
+      }
+      writeLine(writer, endChainOut);
+    }
+    for (EdgeCycle<E> cycle : solution.getEdgeCycles()) {
+      writeLine(writer, cycleOut, Integer.toString(cycle.size()));
+      for (E edge : cycle.getEdgesInOrder()) {
+        writeLine(writer, edgeNames.apply(edge));
+      }
+      writeLine(writer, endCycleOut);
+    }
+  }
+
   @Override
   public <V, E> void writeSolution(KepInstance<V, E> instance,
       CycleChainDecomposition<V, E> solution,
       Function<? super E, String> edgeNames, String fileName) {
     try {
       BufferedWriter writer = new BufferedWriter(new FileWriter(fileName));
-      for (EdgeChain<E> chain : solution.getEdgeChains()) {
-        writeLine(writer, chainOut, Integer.toString(chain.size()));
-        for (E edge : chain.getEdgesInOrder()) {
-          writeLine(writer, edgeNames.apply(edge));
-        }
-        writeLine(writer, endChainOut);
-      }
-      for (EdgeCycle<E> cycle : solution.getEdgeCycles()) {
-        writeLine(writer, cycleOut, Integer.toString(cycle.size()));
-        for (E edge : cycle.getEdgesInOrder()) {
-          writeLine(writer, edgeNames.apply(edge));
-        }
-        writeLine(writer, endCycleOut);
-      }
+      writeChainsAndCycles(solution, edgeNames, writer);
+      writer.close();
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public <V, E> void writeSolution(KepInstance<V, E> instance,
+      CycleChainDecomposition<V, E> solution,
+      Function<? super E, String> edgeNames, String fileName, int seed) {
+    try {
+      BufferedWriter writer = new BufferedWriter(new FileWriter(fileName));
+      writeLine(writer, randomSeed, Integer.toString(seed));
+      writeChainsAndCycles(solution, edgeNames, writer);
       writer.close();
     } catch (IOException e) {
       throw new RuntimeException(e);
