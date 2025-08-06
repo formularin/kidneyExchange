@@ -85,7 +85,8 @@ public class CommandLineInterface {
   public static void main(String[] args) {
 
     EnumMap<CLIOption, String> options = parseInput(args);
-    System.out.println(options);
+    int verbosity = (int) extractOrDefault(options, CLIOption.verbosity, 1);
+    if (verbosity > 0) System.out.println(options);
     boolean fullUserCuts = extractOrDefault(options, CLIOption.fullUserCut,
         true);
     int numThreads = (int) extractOrDefault(options, CLIOption.numThreads, 1);
@@ -117,7 +118,7 @@ public class CommandLineInterface {
                 SolverOption.userCutCallback, SolverOption.disableFullUserCut);
           }
           CycleChainPackingSubtourElimination<Node, Edge> solver = new CycleChainPackingSubtourElimination<Node, Edge>(
-              kep, true, maxSolveTimeMs, threadPool, solverOptions);
+              kep, verbosity > 0, maxSolveTimeMs, threadPool, solverOptions);
           int seed = (int) extractOrDefault(options, CLIOption.seed, defaultSeed);
           solver.getCplex().setParam(IloCplex.Param.RandomSeed, seed);
           solver.solve();
@@ -273,7 +274,7 @@ public class CommandLineInterface {
   }
 
   public static enum CLIOption {
-    seed, mode, kepIn, edgeFailureIn, edgeFailureScenariosIn, optPackingOut, phaseOneOut, edgeRealizationIn, edgeRealizationOut, arrivalTimesIn, matchingTimesOut, numThreads, maxTimeSeconds, numScenarios, formulation, fullUserCut;
+    verbosity, seed, mode, kepIn, edgeFailureIn, edgeFailureScenariosIn, optPackingOut, phaseOneOut, edgeRealizationIn, edgeRealizationOut, arrivalTimesIn, matchingTimesOut, numThreads, maxTimeSeconds, numScenarios, formulation, fullUserCut;
   }
 
   private static CLIOption parseOption(String optionText) {
