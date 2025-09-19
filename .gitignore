@@ -10,3 +10,7 @@ kidneyMatching/kidneyMatching.jar
 
 *.class
 
+kidneyMatching/.idea/
+kidneyMatching/kidneyMatching.iml
+kidneyMatching/out/
+kidneyMatching/src/META-INF/

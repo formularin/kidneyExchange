@@ -8,6 +8,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
 import kepLib.KepInstance;
 import kepLib.KepParseData;
@@ -31,7 +32,6 @@ import graphUtil.Node;
 
 public class CommandLineInterface {
 
-  public static final long defaultSeed = 123;
   public static final String deterministicMode = "deterministicMode";
   public static final String twoStageMode = "twoStageMode";
   public static final String minWaitingMode = "minWaitingMode";
@@ -74,12 +74,12 @@ public class CommandLineInterface {
     return extractOrDefault(options, option, defaultValue, EnumSet.allOf(clazz));
   }
 
-  private static <T> Optional<Double> extractOptional(
-      EnumMap<CLIOption, String> options, CLIOption option) {
+  private static <T> Optional<T> extractOptional(
+          EnumMap<CLIOption, String> options, CLIOption option, Function<String, T> parse) {
     if (options.containsKey(option)) {
-      return Optional.of(Double.parseDouble(options.get(option)));
+      return Optional.of(parse.apply(options.get(option)));
     }
-    return Optional.<Double> absent();
+    return Optional.<T> absent();
   }
 
   public static void main(String[] args) {
@@ -94,7 +94,7 @@ public class CommandLineInterface {
         CLIOption.formulation, SolverOption.cutsetMode,
         SolverOption.constriantModes);
     Optional<Double> maxSolveTimeMs = extractOptional(options,
-        CLIOption.maxTimeSeconds);
+        CLIOption.maxTimeSeconds, Double::parseDouble);
     Optional<FixedThreadPool> threadPool = FixedThreadPool.makePool(numThreads);
     ensureOptionsContain(options,
         EnumSet.of(CLIOption.mode, CLIOption.kepIn, CLIOption.optPackingOut));
@@ -119,13 +119,17 @@ public class CommandLineInterface {
           }
           CycleChainPackingSubtourElimination<Node, Edge> solver = new CycleChainPackingSubtourElimination<Node, Edge>(
               kep, verbosity > 0, maxSolveTimeMs, threadPool, solverOptions);
-          int seed = (int) extractOrDefault(options, CLIOption.seed, defaultSeed);
-          solver.getCplex().setParam(IloCplex.Param.RandomSeed, seed);
+          Optional<Integer> seed = extractOptional(options, CLIOption.seed, Integer::parseInt);
+          if (seed.isPresent()) {
+            System.out.println(seed.get());
+            solver.getCplex().setParam(IloCplex.Param.RandomSeed, seed.get());
+          }
+          int seedVal = solver.getCplex().getParam(IloCplex.Param.RandomSeed);
           solver.solve();
           CycleChainDecomposition<Node, Edge> solution = solver.getSolution();
           solver.cleanUp();
           KepTextReaderWriter.INSTANCE.writeSolution(kep, solution,
-              KepParseData.toStringFunction, optPackingOutFile, seed);
+              KepParseData.toStringFunction, optPackingOutFile, seedVal);
         } catch (IloException e) {
           throw new RuntimeException(e);
         }
