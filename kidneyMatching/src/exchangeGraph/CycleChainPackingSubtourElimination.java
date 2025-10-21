@@ -56,9 +56,17 @@ public class CycleChainPackingSubtourElimination<V, E> extends
   }
 
   public CycleChainPackingSubtourElimination(KepInstance<V, E> kepInstance,
+                                             boolean displayOutput, Optional<Double> maxTimeSeconds,
+                                             Optional<FixedThreadPool> threadPool,
+                                             ImmutableSet<SolverOption> solverOptions, Optional<Integer> cardinality) throws IloException {
+    this(kepInstance, displayOutput, maxTimeSeconds, threadPool, solverOptions,
+            5, cardinality);
+  }
+
+  public CycleChainPackingSubtourElimination(KepInstance<V, E> kepInstance,
       boolean displayOutput, Optional<Double> maxTimeSeconds,
       Optional<FixedThreadPool> threadPool,
-      ImmutableSet<SolverOption> solverOptions, int maxHeuristicAttempts)
+      ImmutableSet<SolverOption> solverOptions, int maxHeuristicAttempts, Optional<Integer> cardinality)
       throws IloException {
     super(kepInstance, displayOutput, maxTimeSeconds, !solverOptions
         .contains(SolverOption.silentNoSolutionFound));
@@ -69,7 +77,7 @@ public class CycleChainPackingSubtourElimination<V, E> extends
           solverOptions);
     } else {
       this.polytope = new CycleChainPackingPolytope<V, E>(kepInstance, cplex,
-          threadPool, solverOptions);
+          threadPool, solverOptions, cardinality);
     }
     if (this.solverOptions.contains(SolverOption.lazyConstraintCallback)) {
       cplex.use(new KepLazyConstraintCallback());
@@ -159,6 +167,13 @@ public class CycleChainPackingSubtourElimination<V, E> extends
       int strongBranching = 3;
       cplex.setParam(IloCplex.IntParam.VarSel, strongBranching);
     }
+  }
+
+  public CycleChainPackingSubtourElimination(KepInstance<V, E> kepInstance,
+                                             boolean displayOutput, Optional<Double> maxTimeSeconds,
+                                             Optional<FixedThreadPool> threadPool,
+                                             ImmutableSet<SolverOption> solverOptions, int maxHeuristicAttempts) throws IloException {
+    this(kepInstance, displayOutput, maxTimeSeconds, threadPool, solverOptions, maxHeuristicAttempts, Optional.absent());
   }
 
   @Override

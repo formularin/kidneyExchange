@@ -117,8 +117,9 @@ public class CommandLineInterface {
                 SolverOption.lazyConstraintCallback,
                 SolverOption.userCutCallback, SolverOption.disableFullUserCut);
           }
+          Optional<Integer> cardinality = extractOptional(options, CLIOption.cardinality, Integer::parseInt);
           CycleChainPackingSubtourElimination<Node, Edge> solver = new CycleChainPackingSubtourElimination<Node, Edge>(
-              kep, verbosity > 0, maxSolveTimeMs, threadPool, solverOptions);
+              kep, verbosity > 0, maxSolveTimeMs, threadPool, solverOptions, cardinality);
           Optional<Integer> seed = extractOptional(options, CLIOption.seed, Integer::parseInt);
           if (seed.isPresent()) {
             System.out.println(seed.get());
@@ -278,7 +279,7 @@ public class CommandLineInterface {
   }
 
   public static enum CLIOption {
-    verbosity, seed, mode, kepIn, edgeFailureIn, edgeFailureScenariosIn, optPackingOut, phaseOneOut, edgeRealizationIn, edgeRealizationOut, arrivalTimesIn, matchingTimesOut, numThreads, maxTimeSeconds, numScenarios, formulation, fullUserCut;
+    cardinality, verbosity, seed, mode, kepIn, edgeFailureIn, edgeFailureScenariosIn, optPackingOut, phaseOneOut, edgeRealizationIn, edgeRealizationOut, arrivalTimesIn, matchingTimesOut, numThreads, maxTimeSeconds, numScenarios, formulation, fullUserCut;
   }
 
   private static CLIOption parseOption(String optionText) {

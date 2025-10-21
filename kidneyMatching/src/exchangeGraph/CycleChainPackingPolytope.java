@@ -98,6 +98,18 @@ public class CycleChainPackingPolytope<V, E> implements
     addAuxiliaryConstraints();
   }
 
+  public CycleChainPackingPolytope(KepInstance<V, E> kepInstance, IloCplex cplex,
+                                   Optional<FixedThreadPool> threadPool,
+                                   ImmutableSet<SolverOption> solverOptions, Optional<Integer> cardinality) throws IloException {
+    this(kepInstance, cplex, threadPool, solverOptions);
+
+    if (cardinality.isPresent()) {
+      IloLinearIntExpr cardExpr = cycleVariables.integerSum(cycleVariables, EdgeCycle::size);
+      cardExpr.add(edgeVariables.integerSum(edgeVariables));
+      CplexUtil.addConstraint(cardExpr, KepInstance.RelationType.eq, cardinality.get(), cplex);
+    }
+  }
+
   public IloLinearNumExpr createObjective() throws IloException {
     double cycleBonus = kepInstance.getCycleBonus();
     IloLinearNumExpr obj = this.edgeVariables.doubleSum(edgeVariables,
